@@ -10,6 +10,10 @@
 
 #include <iostream>
 #include <functional>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sstream>
+#include <vector>
 
 /* Include <datamappercpp/sql/util/trace.h>
  * and call dm::sql::TraceSqlToStderr();

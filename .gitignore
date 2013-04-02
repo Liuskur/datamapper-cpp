@@ -8,3 +8,6 @@ obj/
 bin/
 datamappercpp-test
 test.sqlite
+*.suo
+*.sdf
+*.opensdf

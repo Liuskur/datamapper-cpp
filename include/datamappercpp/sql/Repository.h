@@ -319,7 +319,7 @@ private:
             // TODO: entity.id << *result;
             entity.id = (*result)[0];
         }
-        catch (const dbc::NoResultsError& e)
+        catch (const dbc::NoResultsError&)
         {
             std::ostringstream msg;
             msg << "No " << Mapping::getLabel() << " exists for query '"

@@ -1,19 +1,20 @@
-#include <datamappercpp/sql/Repository.h>
-#include <datamappercpp/sql/db.h>
-
-#include <datamappercpp/sql/detail/SqlStatementBuilder.h>
-
-#include <utilcpp/disable_copy.h>
-
-#include <testcpp/testcpp.h>
-#include <testcpp/StdOutView.h>
-
-#include <iostream>
 #include <functional>
+#include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sstream>
 #include <vector>
+
+#include <utilcpp/disable_copy.h>
+#include <utilcpp/declarations.h>
+
+#include <datamappercpp/sql/Repository.h>
+#include <datamappercpp/sql/db.h>
+#include <datamappercpp/sql/detail/SqlStatementBuilder.h>
+
+#include <testcpp/testcpp.h>
+#include <testcpp/StdOutView.h>
+
 
 /* Include <datamappercpp/sql/util/trace.h>
  * and call dm::sql::TraceSqlToStderr();

@@ -32,7 +32,7 @@ public:
         Mapping::accept(fieldBuilder, _dummy_entity);
 
         // replace last comma with ')'
-        long pos = sql.tellp();
+		std::streamoff pos = sql.tellp();
         sql.seekp(pos - 1);
         sql << ")";
 
@@ -78,7 +78,7 @@ public:
         UpdateStatementFieldBuilder fieldBuilder(sql);
         Mapping::accept(fieldBuilder, _dummy_entity);
 
-        long pos = sql.tellp();
+		std::streamoff pos = sql.tellp();
         sql.seekp(pos - 1); // remove last comma
 
         sql << " WHERE id=?";

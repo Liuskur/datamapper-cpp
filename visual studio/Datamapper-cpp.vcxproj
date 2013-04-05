@@ -13,6 +13,15 @@
   <ItemGroup>
     <ClCompile Include="..\test\src\main.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\include\datamappercpp\sql\db.h" />
+    <ClInclude Include="..\include\datamappercpp\sql\detail\SqlStatementBuilder.h" />
+    <ClInclude Include="..\include\datamappercpp\sql\detail\StatementBuilderFieldVisitors.h" />
+    <ClInclude Include="..\include\datamappercpp\sql\exceptions.h" />
+    <ClInclude Include="..\include\datamappercpp\sql\Repository.h" />
+    <ClInclude Include="..\include\datamappercpp\sql\Transaction.h" />
+    <ClInclude Include="..\include\datamappercpp\sql\util\trace.h" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{C1F847C0-1983-47CE-AD05-F0A10A27CCA3}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>

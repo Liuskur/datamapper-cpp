@@ -44,6 +44,9 @@ private:
 template <>
 std::string Field<int>::getType() const { return "INT"; }
 
+template <>
+std::string Field<__int64>::getType() const { return "INT"; }
+
 // TODO: add CHECK( in { 0, 1 } )
 template <>
 std::string Field<bool>::getType() const { return "INT"; }
@@ -56,6 +59,9 @@ std::string Field<const char*>::getType() const { return "TEXT"; }
 
 template <>
 std::string Field<std::string>::getType() const { return "TEXT"; }
+
+template <>
+std::string Field<std::wstring>::getType() const { return "TEXT"; }
 
 }
 

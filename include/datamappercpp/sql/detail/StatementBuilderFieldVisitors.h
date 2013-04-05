@@ -1,3 +1,4 @@
+#pragma once
 #include <datamappercpp/Field.h>
 
 #include <utilcpp/disable_copy.h>

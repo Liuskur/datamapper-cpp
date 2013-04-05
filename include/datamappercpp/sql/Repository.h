@@ -1,3 +1,4 @@
+#pragma once
 #include <datamappercpp/sql/Transaction.h>
 #include <datamappercpp/sql/db.h>
 #include <datamappercpp/sql/exceptions.h>
@@ -17,12 +18,14 @@
       namespace stdutil = std;
   }
 #else
+  #include <boost/shared_ptr.hpp>
   #include <boost/function.hpp>
   namespace dm
   {
       namespace stdutil = boost;
   }
 #endif
+
 
 namespace dm {
 namespace sql {
@@ -70,6 +73,7 @@ private:
     unsigned int _counter;
 };
 
+
 /**
  * Repository transfers domain entities and their collections to and from
  * the database.
@@ -82,6 +86,7 @@ class Repository
 {
 public:
     typedef std::vector<Entity> Entities;
+    typedef std::vector<std::shared_ptr<Entity> > EntitiesPtr;
     typedef SqlStatementBuilder<Entity, Mapping> EntitySqlBuilder;
 
     static void CreateTable(bool enableTransaction = true)
@@ -159,7 +164,7 @@ public:
         entity.id = -1;
     }
 
-    static void Delete(int id,
+    static void Delete(__int64 id,
                 bool enableTransaction = true,
                 bool checkOneDeleted = true)
     {
@@ -181,6 +186,21 @@ public:
         transaction.commit();
     }
 
+	template <typename Value>
+	static void DeleteByField(std::string field,
+				const Value &value,
+                bool enableTransaction = true)
+    {
+		Statement statement = PrepareStatement(EntitySqlBuilder::DeleteByFieldStatement(field));
+        *statement << value;
+
+        Transaction transaction(enableTransaction);
+
+        statement->executeUpdate();
+
+        transaction.commit();
+    }
+
     static void DeleteAll(bool enableTransaction = true)
     {
         Transaction transaction(enableTransaction);
@@ -190,7 +210,7 @@ public:
         transaction.commit();
     }
 
-    static Entity Get(int id)
+    static Entity Get(__int64 id)
     {
         // note that SELECTs are outside transactions and
         // mixing them with ongoing transactions may cause problems
@@ -222,6 +242,13 @@ public:
         return GetByQueryImpl(statement, allowMany, -1);
     }
 
+	static Entity GetByQuery(const std::wstring& sql,
+			bool allowMany = false)
+	{
+		return GetByQuery(static_cast<const char*>(toMBStr(sql)), allowMany);
+		//toMBStr is included from SqlStatementBuilder.h
+	}
+
     static Entity GetByQuery(Statement& statement,
             bool allowMany = false)
     {
@@ -236,6 +263,24 @@ public:
         return GetManyByQuery(_getAllEntitiesStatement);
     }
 
+    static EntitiesPtr GetAllPtr()
+    {
+        prepareStatement(_getAllEntitiesStatement,
+                         &EntitySqlBuilder::SelectAllStatement);
+
+        return GetManyByQueryPtr(_getAllEntitiesStatement);
+    }
+
+    template <typename Value>
+	static EntitiesPtr GetManyByFieldPtr(const std::string& fieldname, Value value)
+    {
+        Statement statement = PrepareStatement(
+                EntitySqlBuilder::SelectByFieldStatement(fieldname));
+        *statement << value;
+
+        return GetManyByQueryPtr(statement);
+    }
+
     template <typename Value>
     static Entities GetManyByField(const std::string& fieldname, Value value)
     {
@@ -246,9 +291,60 @@ public:
         return GetManyByQuery(statement);
     }
 
+    template <typename Value1, typename Value2>
+	static EntitiesPtr GetManyByFieldPtr(const std::string& fieldname1, Value1 value1,
+		const std::string& fieldname2, Value2 value2)
+    {
+        Statement statement = PrepareStatement(
+                EntitySqlBuilder::SelectByFieldStatement(fieldname1, fieldname2));
+        *statement << value1 << value2;
+
+        return GetManyByQueryPtr(statement);
+    }
+
+	template <typename Value1, typename Value2>
+	static Entities GetManyByField(const std::string& fieldname1, Value1 value1,
+		const std::string& fieldname2, Value2 value2)
+    {
+        Statement statement = PrepareStatement(
+                EntitySqlBuilder::SelectByFieldStatement(fieldname1, fieldname2));
+        *statement << value1 << value2;
+
+        return GetManyByQuery(statement);
+    }
+
+	template <typename Value1, typename Value2, typename Value3>
+	static EntitiesPtr GetManyByFieldPtr(const std::string& fieldname1, Value1 value1,
+		const std::string& fieldname2, Value2 value2, const std::string& fieldname3, Value3 value3)
+    {
+        Statement statement = PrepareStatement(
+                EntitySqlBuilder::SelectByFieldStatement(fieldname1, fieldname2, fieldname3));
+        *statement << value1 << value2 << value3;
+
+        return GetManyByQueryPtr(statement);
+    }
+
+	template <typename Value1, typename Value2, typename Value3>
+	static Entities GetManyByField(const std::string& fieldname1, Value1 value1,
+		const std::string& fieldname2, Value2 value2, const std::string& fieldname3, Value3 value3)
+    {
+        Statement statement = PrepareStatement(
+                EntitySqlBuilder::SelectByFieldStatement(fieldname1, fieldname2, fieldname3));
+        *statement << value1 << value2 << value3;
+
+        return GetManyByQuery(statement);
+    }
+
     static Entities GetManyByQuery(const std::string& sql)
     {
         Statement statement = PrepareStatement(sql);
+        return GetManyByQuery(statement);
+    }
+
+	static Entities GetManyByQuery(const std::wstring& sql)
+    {
+        Statement statement = PrepareStatement(toMBStr(sql));
+		//toMBStr is included from SqlStatementBuilder.h
         return GetManyByQuery(statement);
     }
 
@@ -270,6 +366,30 @@ public:
 
         return entities;
     }
+
+	static EntitiesPtr GetManyByQueryPtr(Statement& statement)
+    {
+        EntitiesPtr entities;
+        dbc::ResultSet::ptr result(statement->executeQuery());
+
+        while (result->next())
+        {
+			boost::shared_ptr<Entity> entity( new Entity );
+            entity->id = (*result)[0];
+
+            ObjectFieldBinder fieldbinder(*result);
+            Mapping::accept(fieldbinder, *entity);
+
+            entities.push_back(entity);
+        }
+
+        return entities;
+    }
+
+	static dbc::ResultSet::ptr ExecuteQuery(std::string sql)
+	{
+		Statement statement;
+	}
 
     static void ResetStatements()
     {
@@ -307,7 +427,7 @@ private:
     }
 
     inline static Entity GetByQueryImpl(Statement& statement,
-            bool allowMany, int id)
+            bool allowMany, __int64 id)
     {
         Entity entity;
 

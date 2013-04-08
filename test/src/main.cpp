@@ -24,10 +24,11 @@
 struct Person
 {
     typedef std::vector<Person> list;
+    typedef std::vector<boost::shared_ptr<Person>> listPtr;
 
     __int64 id;
     std::string name;
-	std::wstring wname;
+    std::wstring wname;
     __int64 age;
     double height;
 
@@ -41,16 +42,16 @@ struct Person
 
     bool operator==(const Person& rhs) const
     {
-		return id == rhs.id && name == rhs.name && wname == rhs.wname
-               && age == rhs.age && height == rhs.height;
+        return id == rhs.id && name == rhs.name && wname == rhs.wname
+            && age == rhs.age && height == rhs.height;
     }
 
     operator std::wstring() const
     {
-		std::wstring nameWstring;
-		#pragma warning(disable:4996)//We are perfectly aware the mbstowcs is not "safe" operation as the destination size is not given - fortunately our destination has dynamic size.
-		mbstowcs(&nameWstring[0], &name[0], name.length());
-		#pragma warning(default:4996)
+        std::wstring nameWstring;
+        #pragma warning(disable:4996)//We are perfectly aware the mbstowcs is not "safe" operation as the destination size is not given - fortunately our destination has dynamic size.
+        mbstowcs(&nameWstring[0], &name[0], name.length());
+        #pragma warning(default:4996)
         std::wostringstream out;
         out << "Person: {"
             << id << ","
@@ -76,7 +77,7 @@ public:
     {
         // Note that field order is important
         v.visitField(dm::Field<std::string>("name", "UNIQUE NOT NULL"), p.name);
-		v.visitField(dm::Field<std::wstring>("wname"), p.wname);
+        v.visitField(dm::Field<std::wstring>("wname"), p.wname);
         v.visitField(dm::Field<__int64>("age"), p.age);
         v.visitField(dm::Field<double>("height"), p.height);
     }
@@ -99,8 +100,8 @@ public:
     TestDataMapperCpp()
     {
         dm::sql::ConnectDatabase("test.sqlite");
-		dm::sql::ExecuteStatement(std::string("DROP TABLE IF EXISTS ")
-			+ PersonMapping::getLabel());
+        dm::sql::ExecuteStatement(std::string("DROP TABLE IF EXISTS ")
+            + PersonMapping::getLabel());
     }
 
     ~TestDataMapperCpp()
@@ -124,15 +125,15 @@ public:
         typedef dm::sql::SqlStatementBuilder<Person, PersonMapping> PersonSql;
 
         Test::assertEqual<std::string>(
-                "Create table statement is correct",
-                PersonSql::CreateTableStatement(),
-                "CREATE TABLE IF NOT EXISTS person"
-                "(id INTEGER PRIMARY KEY AUTOINCREMENT,"
-                "name TEXT UNIQUE NOT NULL,"
-				"wname TEXT,"
-                "age INT,"
-                "height REAL);"
-                "CREATE INDEX IF NOT EXISTS person_name_idx ON person (name)");
+            "Create table statement is correct",
+            PersonSql::CreateTableStatement(),
+            "CREATE TABLE IF NOT EXISTS person"
+            "(id INTEGER PRIMARY KEY AUTOINCREMENT,"
+            "name TEXT UNIQUE NOT NULL,"
+            "wname TEXT,"
+            "age INT,"
+            "height REAL);"
+            "CREATE INDEX IF NOT EXISTS person_name_idx ON person (name)");
 
         Test::assertEqual<std::string>(
                 "Insert statement is correct",
@@ -199,9 +200,9 @@ public:
                 "if allow_many is true",
                 p.name == "Ervin" && p.wname == L"ŽŸ®" && p.age == 8446744073709551615 && p.height == 1.80);
 
-		statement = dm::sql::PrepareStatement(
+        statement = dm::sql::PrepareStatement(
                 "SELECT * FROM person WHERE wname LIKE ? AND age = ?");
-		*statement << L"%Ÿ®" << 8446744073709551615;
+        *statement << L"%Ÿ®" << 8446744073709551615;
         p = PersonRepository::GetByQuery(statement);
         Test::assertTrue(
                 "Statement operator << works for wstring and __int64",
@@ -241,6 +242,12 @@ public:
 
         Test::assertEqual<Person::list>("Get many objects by field works",
                 ps, expected);
+
+        Person::listPtr listPtrExpected;
+        listPtrExpected.push_back(boost::shared_ptr<Person>(new Person(1, "Ervin", L"ŽŸ®", 8446744073709551615, 1.80)));
+        Person::listPtr listPtr = PersonRepository::GetManyByFieldPtr("age", 8446744073709551615);
+        Test::assertEqual<Person>("Get many object pointers by field works",
+            *listPtr[0], *listPtrExpected[0]);
 
         expected.clear();
         expected.push_back(Person(1, "Ervin", L"ŽŸ®", 8446744073709551615, 1.80));

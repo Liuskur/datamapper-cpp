@@ -19,6 +19,7 @@
   }
 #else
   #include <boost/shared_ptr.hpp>
+  #include <boost/make_shared.hpp>
   #include <boost/function.hpp>
   namespace dm
   {
@@ -86,7 +87,7 @@ class Repository
 {
 public:
     typedef std::vector<Entity> Entities;
-    typedef std::vector<std::shared_ptr<Entity> > EntitiesPtr;
+    typedef std::vector<stdutil::shared_ptr<Entity> > EntitiesPtr;
     typedef SqlStatementBuilder<Entity, Mapping> EntitySqlBuilder;
 
     static void CreateTable(bool enableTransaction = true)
@@ -367,14 +368,14 @@ public:
         return entities;
     }
 
-	static EntitiesPtr GetManyByQueryPtr(Statement& statement)
+    static EntitiesPtr GetManyByQueryPtr(Statement& statement)
     {
         EntitiesPtr entities;
         dbc::ResultSet::ptr result(statement->executeQuery());
 
         while (result->next())
         {
-			boost::shared_ptr<Entity> entity( new Entity );
+            stdutil::shared_ptr<Entity> entity(stdutil::make_shared<Entity>());
             entity->id = (*result)[0];
 
             ObjectFieldBinder fieldbinder(*result);
@@ -386,10 +387,10 @@ public:
         return entities;
     }
 
-	static dbc::ResultSet::ptr ExecuteQuery(std::string sql)
-	{
-		Statement statement;
-	}
+    static dbc::ResultSet::ptr ExecuteQuery(std::string sql)
+    {
+        Statement statement;
+    }
 
     static void ResetStatements()
     {
